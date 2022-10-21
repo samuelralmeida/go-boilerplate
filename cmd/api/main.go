@@ -26,7 +26,13 @@ func main() {
 	flag.StringVar(&cfg.addr, "addr", "localhost:4242", "server address to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "environment")
 
-	server := server.New(server.Options{Addr: cfg.addr, Handler: nil, CertFile: cfg.tls.certFile, KeyFile: cfg.tls.keyFile})
+	app := &application{
+		config: cfg,
+	}
+
+	handlers := app.routes()
+
+	server := server.New(server.Options{Addr: cfg.addr, Handler: handlers, CertFile: cfg.tls.certFile, KeyFile: cfg.tls.keyFile})
 
 	log.Printf("starting server on %s\n", cfg.addr)
 	err := server.Run()
