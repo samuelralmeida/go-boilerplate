@@ -13,7 +13,7 @@ import (
 
 type Options struct {
 	Addr     string
-	Handler  http.Handler
+	Routes   http.Handler
 	CertFile string
 	KeyFile  string
 }
@@ -25,7 +25,7 @@ type server struct {
 }
 
 func New(options Options) *server {
-	srv := newServer(options.Addr, options.Handler)
+	srv := newServer(options.Addr, options.Routes)
 	return &server{
 		srv:      srv,
 		certFile: options.CertFile,

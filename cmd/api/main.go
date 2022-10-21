@@ -4,6 +4,7 @@ import (
 	"flag"
 	"log"
 
+	"github.com/samuelralmeida/go-boilerplate/cmd/api/handlers"
 	"github.com/samuelralmeida/go-boilerplate/internal/server"
 )
 
@@ -17,7 +18,8 @@ type config struct {
 }
 
 type application struct {
-	config config
+	config  config
+	handler handlers.Handler
 }
 
 func main() {
@@ -26,13 +28,14 @@ func main() {
 	flag.StringVar(&cfg.addr, "addr", "localhost:4242", "server address to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "environment")
 
+	handlers := handlers.New(handlers.Options{})
+
 	app := &application{
-		config: cfg,
+		config:  cfg,
+		handler: handlers,
 	}
 
-	handlers := app.routes()
-
-	server := server.New(server.Options{Addr: cfg.addr, Handler: handlers, CertFile: cfg.tls.certFile, KeyFile: cfg.tls.keyFile})
+	server := server.New(server.Options{Addr: cfg.addr, Routes: app.routes(), CertFile: cfg.tls.certFile, KeyFile: cfg.tls.keyFile})
 
 	log.Printf("starting server on %s\n", cfg.addr)
 	err := server.Run()
