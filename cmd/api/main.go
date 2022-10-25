@@ -5,7 +5,9 @@ import (
 	"log"
 
 	"github.com/samuelralmeida/go-boilerplate/cmd/api/handlers"
+	"github.com/samuelralmeida/go-boilerplate/internal/repository"
 	"github.com/samuelralmeida/go-boilerplate/internal/server"
+	"github.com/samuelralmeida/go-boilerplate/internal/service"
 )
 
 type config struct {
@@ -28,7 +30,9 @@ func main() {
 	flag.StringVar(&cfg.addr, "addr", "localhost:4242", "server address to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "environment")
 
-	handlers := handlers.New(handlers.Options{})
+	repository := repository.New(repository.Options{})
+	service := service.New(service.Options{Repository: repository})
+	handlers := handlers.New(handlers.Options{Service: service})
 
 	app := &application{
 		config:  cfg,
