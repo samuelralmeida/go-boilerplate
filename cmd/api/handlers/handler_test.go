@@ -9,30 +9,43 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func Test_handler_Home(t *testing.T) {
+func Test_handler_writeJsonResponse(t *testing.T) {
 	h := &handler{}
 
+	payload := "success"
+
+	type args struct {
+		w       http.ResponseWriter
+		payload interface{}
+		status  int
+	}
 	tests := []struct {
-		name string
-		msg  string
+		name       string
+		args       args
+		wantStatus int
+		wantMsg    string
 	}{
 		{
-			name: "should get msg correctly 1",
-			msg:  "success",
+			name:       "erro to marshal payload",
+			args:       args{w: httptest.NewRecorder(), payload: make(chan int), status: 200},
+			wantStatus: 500,
+			wantMsg:    errMarshalResponse.Error(),
 		},
 		{
-			name: "should get msg correctly 2",
-			msg:  "yep",
+			name:       "success to write json response",
+			args:       args{w: httptest.NewRecorder(), payload: payload, status: 200},
+			wantStatus: 200,
+			wantMsg:    payload,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			r := httptest.NewRequest("GET", fmt.Sprintf("http://www.boilerplate.com/home?msg=%s", tt.msg), nil)
+			h.writeJsonResponse(tt.args.w, tt.args.payload, tt.args.status)
+			recorder := tt.args.w.(*httptest.ResponseRecorder)
 
-			h.Home(w, r)
-			assert.Equal(t, http.StatusOK, w.Code)
-			assert.Contains(t, fmt.Sprint(w.Body), fmt.Sprintf("\"msg\": \"%s\"", tt.msg))
+			assert.Equal(t, tt.wantStatus, recorder.Code)
+			assert.Contains(t, fmt.Sprint(recorder.Body), tt.wantMsg)
+
 		})
 	}
 }

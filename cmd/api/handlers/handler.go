@@ -1,14 +1,18 @@
+//go:generate mockery --output ../../../internal/mocks --name Handler
 package handlers
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/samuelralmeida/go-boilerplate/internal/service"
 )
 
 type Handler interface {
-	Home(w http.ResponseWriter, r *http.Request)
+	homeHandler
 }
 
 type handler struct {
@@ -25,19 +29,21 @@ func New(options Options) Handler {
 	return handler
 }
 
-func (h *handler) Home(w http.ResponseWriter, r *http.Request) {
-	msg := r.URL.Query().Get("msg")
+// helpers methods
 
-	type resp struct {
-		Msg string `json:"msg"`
+var (
+	errMarshalResponse = errors.New("error to marshal response")
+)
+
+func (h *handler) writeJsonResponse(w http.ResponseWriter, payload interface{}, status int) {
+	out, err := json.MarshalIndent(payload, "", "    ")
+	if err != nil {
+		log.Println(fmt.Errorf("%s: %w", err, errMarshalResponse))
+		http.Error(w, errMarshalResponse.Error(), http.StatusInternalServerError)
+		return
 	}
 
-	payload := resp{
-		Msg: msg,
-	}
-
-	fmt.Println("handler calling service")
-	h.service.Home()
-
-	h.writeJsonResponse(w, payload, http.StatusOK)
+	w.WriteHeader(status)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(out)
 }

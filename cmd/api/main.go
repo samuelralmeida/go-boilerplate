@@ -29,6 +29,7 @@ func main() {
 
 	flag.StringVar(&cfg.addr, "addr", "localhost:4242", "server address to listen on")
 	flag.StringVar(&cfg.env, "env", "development", "environment")
+	flag.Parse()
 
 	repository := repository.New(repository.Options{})
 	service := service.New(service.Options{Repository: repository})
